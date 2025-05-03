@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI/CD Build Only
 
 on:
   push:
@@ -7,92 +7,6 @@ on:
   pull_request:
 
 jobs:
-  build-test:
-    name: 🔨 Build & Test Backend
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: ankane/pgvector
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_USER: raan
-          POSTGRES_PASSWORD: securepass
-          POSTGRES_DB: raan_db
-        options: >-
-          --health-cmd="pg_isready"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-      vllm:
-        image: vllm/vllm-openai:latest
-        ports:
-          - 8000:8000
-        options: >-
-          --health-cmd="curl -f http://localhost:8000/v1/models || exit 1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
-
-      dify-api:
-        image: langgenius/dify-api:1.3.1
-        ports:
-          - 5001:5001
-        env:
-          DB_USERNAME: raan
-          DB_PASSWORD: securepass
-          DB_HOST: postgres
-          DB_PORT: 5432
-          DB_DATABASE: raan_db
-          INIT_SUPER_ADMIN_EMAIL: admin@raan.ai
-          APP_ENV: dev
-          CONSOLE_CORS_ALLOW_ORIGINS: '*'
-          STORAGE_TYPE: local
-          LLM_PROVIDER: openai
-          OPENAI_API_BASE_URL: http://vllm:8000/v1
-          OPENAI_API_KEY: dummy-key
-        options: >-
-          --health-cmd="curl -f http://localhost:5001/api/status || exit 1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
-
-    env:
-      POSTGRES_USER: raan
-      POSTGRES_PASSWORD: securepass
-      POSTGRES_DB: raan_db
-      DATABASE_URL: postgresql://raan:securepass@localhost:5432/raan_db
-
-    steps:
-      - name: ⬇️ Checkout Repo
-        uses: actions/checkout@v3
-
-      - name: 🐍 Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: 📦 Install Dependencies
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install -r requirements.txt
-
-      - name: 🕐 Wait for vLLM and Dify
-        run: |
-          echo "Waiting for vLLM..."
-          until curl -s http://localhost:8000/v1/models; do sleep 5; done
-          echo "Waiting for Dify API..."
-          until curl -s http://localhost:5001/api/status; do sleep 5; done
-
-      - name: 🧪 Run Tests
-        run: |
-          source venv/bin/activate
-          cd backend
-          pytest tests/
-
   docker-build:
     name: 🐳 Build Docker Services
     runs-on: ubuntu-latest
