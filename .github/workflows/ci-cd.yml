@@ -47,6 +47,13 @@ jobs:
           source venv/bin/activate
           pip install -r requirements.txt
 
+      - name: 🕐 Wait for vLLM and Dify
+        run: |
+          echo "Waiting for vLLM..."
+          until curl -s http://localhost:8000/v1/models; do sleep 5; done
+          echo "Waiting for Dify API..."
+          until curl -s http://localhost:5001/api/status; do sleep 5; done
+
       - name: 🧪 Run Tests
         run: |
           source venv/bin/activate
