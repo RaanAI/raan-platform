@@ -1,0 +1,66 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: ankane/pgvector
+    container_name: pgvector
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  vllm:
+    image: vllm/vllm-openai:latest
+    container_name: vllm
+    restart: always
+    command: >
+      python3 -m vllm.entrypoints.openai.api_server
+      --model mistralai/Mistral-7B-Instruct-v0.1
+      --port 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    environment:
+      - MODEL_NAME=mistralai/Mistral-7B-Instruct-v0.1
+
+  dify-api:
+    image: langgenius/dify-api:1.3.1
+    container_name: dify-api
+    depends_on:
+      - postgres
+    environment:
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${POSTGRES_DB}
+      INIT_SUPER_ADMIN_EMAIL: admin@raan.ai
+      APP_ENV: dev
+      CONSOLE_CORS_ALLOW_ORIGINS: '*'
+      STORAGE_TYPE: local
+      LLM_PROVIDER: openai
+      OPENAI_API_BASE_URL: http://vllm:8000/v1
+      OPENAI_API_KEY: dummy-key
+    ports:
+      - "5001:5001"
+
+  dify-web:
+    image: langgenius/dify-web:1.3.1
+    container_name: dify-web
+    depends_on:
+      - dify-api
+    environment:
+      API_BASE_URL: http://localhost:5001
+    ports:
+      - "8080:80"
+env_file:
+  - ../.env
+volumes:
+  pgdata:

@@ -1,0 +1,25 @@
+# Web Framework
+fastapi
+uvicorn[standard]
+
+# PostgreSQL & ORM
+sqlalchemy>=2.0
+psycopg2-binary
+asyncpg
+pgvector
+alembic
+
+# LLM and Vector Search
+openai
+langchain
+pydantic
+tiktoken
+
+# Utilities
+python-dotenv
+requests
+httpx
+
+# Testing
+pytest
+pytest-asyncio
