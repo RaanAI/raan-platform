@@ -1,14 +1,12 @@
-version: "3.9"
-
 services:
   postgres:
     image: ankane/pgvector
     container_name: pgvector
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-raan}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-securepass}
+      POSTGRES_DB: ${POSTGRES_DB:-raan_db}
     ports:
       - "5432:5432"
     volumes:
@@ -36,11 +34,11 @@ services:
     depends_on:
       - postgres
     environment:
-      DB_USERNAME: ${POSTGRES_USER}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_USERNAME: ${POSTGRES_USER:-raan}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-securepass}
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_DATABASE: ${POSTGRES_DB}
+      DB_DATABASE: ${POSTGRES_DB:-raan_db}
       INIT_SUPER_ADMIN_EMAIL: admin@raan.ai
       APP_ENV: dev
       CONSOLE_CORS_ALLOW_ORIGINS: '*'
@@ -60,7 +58,6 @@ services:
       API_BASE_URL: http://localhost:5001
     ports:
       - "8080:80"
-env_file:
-  - ../.env
+
 volumes:
   pgdata:

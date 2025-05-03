@@ -57,6 +57,11 @@ jobs:
     name: 🐳 Build Docker Services
     runs-on: ubuntu-latest
 
+    env:
+      POSTGRES_USER: raan
+      POSTGRES_PASSWORD: securepass
+      POSTGRES_DB: raan_db
+
     steps:
       - uses: actions/checkout@v3
 
