@@ -1,4 +1,4 @@
-name: CI/CD Build Only
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,6 +7,52 @@ on:
   pull_request:
 
 jobs:
+  build-test:
+    name: 🔨 Build & Test Backend
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: ankane/pgvector
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: raan
+          POSTGRES_PASSWORD: securepass
+          POSTGRES_DB: raan_db
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      POSTGRES_USER: raan
+      POSTGRES_PASSWORD: securepass
+      POSTGRES_DB: raan_db
+      DATABASE_URL: postgresql://raan:securepass@localhost:5432/raan_db
+
+    steps:
+      - name: ⬇️ Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: 📦 Install Dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: 🧪 Run Tests
+        run: |
+          source venv/bin/activate
+          cd backend
+          pytest tests/
+
   docker-build:
     name: 🐳 Build Docker Services
     runs-on: ubuntu-latest
