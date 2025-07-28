@@ -23,3 +23,7 @@ httpx
 # Testing
 pytest
 pytest-asyncio
+passlib[bcrypt]
+python-jose[cryptography]
+qdrant-client
+sentence-transformers
